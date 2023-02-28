@@ -65,6 +65,8 @@ public:
             return T();
         }
     }
+
+    bool empty() { return this->frnt == 0; }
 };
 
 template <typename T>
@@ -129,6 +131,34 @@ public:
         this->data = data;
         this->l = NULL;
         this->r = NULL;
+    }
+
+    BinaryTree copy() {
+        cout<<"copying\n";
+        BinaryTree copy;
+
+        queue<BinaryTree<T> *> q;
+        q.push(this);
+        while (!q.empty()) {
+            BinaryTree *current = q.front();
+            q.pop();
+            copy.insert(current->data);
+            if (current->l) { q.push(current->l); }
+            if (current->r) { q.push(current->r); }
+        }
+        return copy;
+    }
+    
+    void erase() {
+        if (this->l) {
+            this->l->erase();
+            delete l;
+        }
+        if (this->r) {
+            this->r->erase();
+            delete r;
+        }
+        this->isEmpty = true;
     }
     
     void insert(T data)
@@ -196,7 +226,7 @@ public:
             {
                 this->l->show();
             }
-            
+            cout<<this<<" ";
             cout << "Node: " << this->data << " Left: ";
             if (this->l)
             {
@@ -272,7 +302,7 @@ public:
     
     void postOrder()
     {
-        if (this == NULL) {
+        if (this->isEmpty) {
             return;
         }
         stack<BinaryTree *> s, path;
@@ -300,6 +330,59 @@ public:
             cout<<current->data<<" ";
         }
     }
+    
+    void swapNodes() {
+        if (this->isEmpty) {
+            return;
+        } else {
+            BinaryTree *temp = this->l;
+            this->l = this->r;
+            this->r = temp;
+            
+            if (this->l) {
+                this->l->swapNodes();
+            }
+            
+            if (this->r) {
+                this->r->swapNodes();
+            }
+        }
+    }
+
+    int height() {
+        if (this->isEmpty) {
+            return 0;
+        }
+        int lHeight = 0;
+        int rHeight = 0;
+        if (this->l) {
+            lHeight = this->l->height();
+        }
+
+        if (this->r) {
+            rHeight = this->r->height();
+        }
+
+        return 1 + (lHeight > rHeight ? lHeight : rHeight);
+    }
+
+    int leafNodeCount() {
+        if (this->isEmpty) {
+            return 0;
+        }
+        if (this->l || this->r) {
+            int leafNodeCount = 0;
+            if (this->l) {
+                leafNodeCount += this->l->leafNodeCount();
+            }
+            if (this->r) {
+                leafNodeCount += this->r->leafNodeCount();
+            }
+            return leafNodeCount;
+        } else {
+            return 1;
+        }
+    }
 };
 
 int main() {
@@ -312,8 +395,13 @@ int main() {
     bt.insert(6);
     bt.insert(7);
     bt.insert(8);
+    bt.insert(9);
     
-    bt.inOrder();
-    bt.preOrder();
-    bt.postOrder();
+    bt.show();
+    cout<<endl;
+    BinaryTree<int> bt2 = bt.copy();
+    bt2.show();
+    
+    bt.erase();
+    bt.show();    
 }
