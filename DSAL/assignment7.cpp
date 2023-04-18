@@ -36,7 +36,7 @@ public:
     void push(T data)
     {
         if (this->frnt)
-        {0
+        {
             this->rear->next = new Node<T>(data);
             this->rear = this->rear->next;
         }
@@ -136,11 +136,13 @@ class GraphNode
 {
     T data;
     int id;
+    int cost;
     GraphNode<T> *next;
 
-    GraphNode(int id, T data)
+    GraphNode(int id, int cost, T data)
     {
         this->id = id;
+        this->cost = cost;
         this->data = data;
         this->next = NULL;
     }
@@ -162,11 +164,11 @@ public:
         this->adjacencyList = new GraphNode<T> *[cap];
         for (int i = 0; i < cap; i++)
         {
-            this->adjacencyList[i] = new GraphNode<T>(i, nodes[i]);
+            this->adjacencyList[i] = new GraphNode<T>(i, 0, nodes[i]);
         }
     }
 
-    void addConnection(int id1, int id2)
+    void addConnection(int id1, int id2, int cost)
     {
         GraphNode<T> *last = this->adjacencyList[id1];
         while (last->next)
@@ -181,7 +183,7 @@ public:
         {
             return;
         }
-        last->next = new GraphNode<T>(id2, this->adjacencyList[id2]->data);
+        last->next = new GraphNode<T>(id2, cost, this->adjacencyList[id2]->data);
 
         last = this->adjacencyList[id2];
         while (last->next)
@@ -196,7 +198,7 @@ public:
         {
             return;
         }
-        last->next = new GraphNode<T>(id1, this->adjacencyList[id1]->data);
+        last->next = new GraphNode<T>(id1, cost, this->adjacencyList[id1]->data);
     }
 
     void show()
@@ -206,7 +208,7 @@ public:
             GraphNode<T> *itr = this->adjacencyList[i];
             while (itr)
             {
-                cout << itr->id << ": " << itr->data << " -> ";
+                cout << itr->id << ": " << itr->data << " $" << itr->cost << " -> ";
                 itr = itr->next;
             }
             cout << "X\n";
@@ -275,9 +277,13 @@ public:
             {
                 return;
             }
+
             int currentNode = q.front();
-            visited[currentNode] = 1;
-            cout << this->adjacencyList[currentNode]->data << " ";
+            if (!visited[currentNode])
+            {
+                visited[currentNode] = 1;
+                cout << this->adjacencyList[currentNode]->data << " ";
+            }
             q.pop();
 
             GraphNode<T> *itr = this->adjacencyList[currentNode]->next;
@@ -321,8 +327,11 @@ public:
                 return;
             }
             int currentNode = s.top();
-            visited[currentNode] = 1;
-            cout << this->adjacencyList[currentNode]->data << " ";
+            if (!visited[currentNode])
+            {
+                visited[currentNode] = 1;
+                cout << this->adjacencyList[currentNode]->data << " ";
+            }
             s.pop();
 
             GraphNode<T> *itr = this->adjacencyList[currentNode]->next;
@@ -380,37 +389,113 @@ public:
             }
         }
     }
+
+    void primsMST()
+    {
+        int visited[this->nodes];
+        int includedPaths[this->nodes - 1];
+        int includedPathsCount = 0;
+        int includedPathsNodeID1[this->nodes - 1];
+        int includedPathsNodeID2[this->nodes - 1];
+        for (int i = 0; i < nodes; i++)
+        {
+            visited[i] = 0;
+        }
+        int smallestPathLen = 99999, smallestPathNodeID1 = -1, smallestPathNodeID2 = -1;
+        for (int i = 0; i < nodes; i++)
+        {
+            GraphNode<T> *itr = this->adjacencyList[i]->next;
+            while (itr)
+            {
+                if (itr->cost < smallestPathLen)
+                {
+                    smallestPathLen = itr->cost;
+                    smallestPathNodeID1 = i;
+                    smallestPathNodeID2 = itr->id;
+                }
+                itr = itr->next;
+            }
+        }
+
+        includedPathsNodeID1[includedPathsCount] = smallestPathNodeID1;
+        includedPathsNodeID2[includedPathsCount] = smallestPathNodeID2;
+        visited[smallestPathNodeID1] = 1;
+        visited[smallestPathNodeID2] = 1;
+        includedPaths[includedPathsCount++] = smallestPathLen;
+
+        while (includedPathsCount < (this->nodes - 1))
+        {
+            int nextPathLen = 9999;
+            int alreadyConnectedNodeID = -1;
+            int nextConnectedNodeID = -1;
+
+            for (int i = 0; i < this->nodes; i++)
+            {
+                if (visited[i])
+                {
+                    GraphNode<T> *itr = this->adjacencyList[i]->next;
+                    while (itr)
+                    {
+                        if (itr->cost < nextPathLen && visited[itr->id] == 0)
+                        {
+                            nextPathLen = itr->cost;
+                            alreadyConnectedNodeID = i;
+                            nextConnectedNodeID = itr->id;
+                        }
+                        itr = itr->next;
+                    }
+                }
+            }
+            includedPathsNodeID1[includedPathsCount] = alreadyConnectedNodeID;
+            includedPathsNodeID2[includedPathsCount] = nextConnectedNodeID;
+            visited[nextConnectedNodeID] = 1;
+            includedPaths[includedPathsCount++] = nextPathLen;
+        }
+
+        int totalCost = 0;
+
+        cout << "MST:\nFrom\tTo\tCost\n";
+
+        for (int i = 0; i < this->nodes - 1; i++)
+        {
+            int id1 = includedPathsNodeID1[i];
+            int id2 = includedPathsNodeID2[i];
+            for (int j = 0; j < this->nodes; j++)
+            {
+                if (adjacencyList[j]->id == id1)
+                {
+                    cout << adjacencyList[j]->data << "\t";
+                }
+            }
+            for (int j = 0; j < this->nodes; j++)
+            {
+                if (adjacencyList[j]->id == id2)
+                {
+                    cout << adjacencyList[j]->data << "\t";
+                }
+            }
+            cout << includedPaths[i] << "\n";
+            totalCost += includedPaths[i];
+        }
+        cout << "Total Cost of MST is " << totalCost << ".\n";
+    }
 };
 
 int main()
 {
-    string nodes[] = {"PICT", "BVP", "Katraj-Dairy", "Lake", "Trimurti"};
+    string nodes[] = {"A", "B", "C", "D", "E"};
     Graph<string> g(5, nodes);
 
-    // G1
-    // g.addConnection(0, 2);
-    // g.addConnection(0, 3);
-    // g.addConnection(0, 4);
-    // g.addConnection(1, 2);
-    // g.addConnection(1, 3);
-    // g.addConnection(2, 4);
-    // g.addConnection(3, 4);
+    // G
+    g.addConnection(0, 1, 4);
+    g.addConnection(0, 2, 3);
+    g.addConnection(0, 3, 2);
+    g.addConnection(1, 2, 3);
+    g.addConnection(1, 4, 6);
+    g.addConnection(2, 3, 4);
+    g.addConnection(2, 4, 5);
 
-    // G2
-    g.addConnection(0, 1);
-    g.addConnection(1, 2);
-    g.addConnection(0, 4);
-    g.addConnection(3, 4);
-
-    cout << endl;
     g.show();
-    g.showDegrees();
-
-    g.searchBFS();
     cout << endl;
-    g.searchDFS();
-    cout << endl;
-
-    bool isConnected = g.isConnected();
-    cout << (isConnected ? "Connected\n" : "Disjoint\n");
+    g.primsMST();
 }
