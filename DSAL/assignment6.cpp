@@ -388,13 +388,6 @@ int main()
     Graph<string> g(5, nodes);
 
     // G1
-    // g.addConnection(0, 2);
-    // g.addConnection(0, 3);
-    // g.addConnection(0, 4);
-    // g.addConnection(1, 2);
-    // g.addConnection(1, 3);
-    // g.addConnection(2, 4);
-    // g.addConnection(3, 4);
 
     // G2
     g.addConnection(0, 1);
@@ -410,7 +403,7 @@ int main()
     cout << endl;
     g.searchDFS();
     cout << endl;
-    
+
     bool isConnected = g.isConnected();
     cout << (isConnected ? "Connected\n" : "Disjoint\n");
 }
