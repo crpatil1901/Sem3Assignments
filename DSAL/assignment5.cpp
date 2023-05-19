@@ -33,12 +33,12 @@ int hasher(string key)
 }
 
 template <typename k, typename v>
-class Dictionary
+class HashTable
 {
     Node<k, v> **hashTable;
 
 public:
-    Dictionary()
+    HashTable()
     {
         this->hashTable = new Node<k, v> *[7];
     }
@@ -125,7 +125,7 @@ public:
 
 int main()
 {
-    Dictionary<string, string> dict;
+    HashTable<string, string> dict;
     int c;
     string k, v;
     string menu = "1. Insert Key-Value Pair\n2. Delete Key-Value Pair\n3. Find Key\n4. Show Hash Table\nPress anything else to exit.\nEnter your choice: ";
