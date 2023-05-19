@@ -36,7 +36,7 @@ public:
     void push(T data)
     {
         if (this->frnt)
-        {
+        {0
             this->rear->next = new Node<T>(data);
             this->rear = this->rear->next;
         }
